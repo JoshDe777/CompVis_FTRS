@@ -1,1 +1,5 @@
-YOLOv8
+torch
+torchvision
+torchaudio
+super-gradients
+yaml
