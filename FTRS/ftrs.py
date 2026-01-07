@@ -80,7 +80,7 @@ class FootballDetector:
             'batch': 16,
             'lr0': 0.01,
             'lrf': 0.01,
-            'device': 0,        # GPU device (0 for first GPU, 'cpu' for CPU)
+            'device': 'cpu',        # GPU device (0 for first GPU, 'cpu' for CPU)
             'workers': 8,       
             # transforms
             'mosaic': 0.0,      # fuse multiple images into one
@@ -239,60 +239,7 @@ class FootballTracker:
         )
 
 # ============================================================================
-# PART 4: EXAMPLE USAGE
-# ============================================================================
-
-if __name__ == "__main__":
-    
-    # Step 1: Prepare dataset configuration
-    dataset_path = "dataset"  # Your dataset location
-    data_yaml = "dataset/data.yaml"
-    
-    # Step 2: Initialize and train model
-    detector = FootballDetector(model_size='n')
-    
-    # Step 3: Train with custom parameters
-    results = detector.train(
-        data_yaml=data_yaml,
-        epochs=100,
-        imgsz=640,
-        batch=16,
-        lr0=0.01,
-        patience=20,
-        device=0,  # Use GPU 0
-        # Custom augmentation for football -> (Josh here) sensible transforms for the most part tbh; Color modifs to account for different lighting, horizontal flip for players going both sides; general transforms and a bit of mosaic & mixup decent
-        mosaic=1.0,
-        mixup=0.1,
-        degrees=5.0,  # Small rotation for camera angles
-        translate=0.1,
-        scale=0.5,
-        fliplr=0.5,  # Horizontal flip
-        hsv_h=0.015,
-        hsv_s=0.7,
-        hsv_v=0.4,
-    )
-    
-    # Step 4: Validate model
-    val_results = detector.validate(data_yaml)
-    
-    # Step 5: Track objects in video
-    tracker = FootballTracker(
-        model_path='runs/train/football_detector/weights/best.pt',
-        conf_threshold=0.3,
-        iou_threshold=0.5
-    )
-    
-    tracker.track_video(
-        video_path='test_match.mp4',
-        output_path='tracked_match.mp4',
-        tracker='botsort.yaml'
-    )
-    
-    # Step 6: Export model (optional)
-    detector.export(format='onnx')
-
-# ============================================================================
-# PART 5: SAVE/LOAD WEIGHTS & DEEP MODEL INSPECTION
+# PART 4: SAVE/LOAD WEIGHTS & DEEP MODEL INSPECTION
 # ============================================================================
 
 def save_model_weights(model, save_path):
@@ -482,7 +429,37 @@ def compare_architectures(model1_path, model2_path):
 
 # Example usage for inspection
 if __name__ == "__main__":
+    # Step 1: Prepare dataset configuration
+    dataset_path = "dataset"  # Your dataset location
+    data_yaml = "dataset/data.yaml"
     
+    # Step 2: Initialize and train model
+    detector = FootballDetector(model_size='n')
+    
+    # Step 3: Train with custom parameters
+    results = detector.train(
+        data_yaml=data_yaml
+    )
+    
+    # Step 4: Validate model
+    val_results = detector.validate(data_yaml)
+    
+    # Step 5: Track objects in video
+    tracker = FootballTracker(
+        model_path='runs/train/football_detector/weights/best.pt',
+        conf_threshold=0.3,
+        iou_threshold=0.5
+    )
+    
+    tracker.track_video(
+        video_path='test_match.mp4',
+        output_path='tracked_match.mp4',
+        tracker='botsort.yaml'
+    )
+    
+    # Step 6: Export model (optional)
+    detector.export(format='onnx')
+
     # After training, save the model
     save_model_weights(detector.model, 'football_detector_final.pt')
     
