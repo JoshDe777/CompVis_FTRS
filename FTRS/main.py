@@ -4,6 +4,7 @@ from super_gradients.training.datasets.detection_datasets.yolo_format_detection 
     YoloDarknetFormatDetectionDataset
 )
 from super_gradients.training import dataloaders
+from torch.utils.data import DataLoader
 from super_gradients.training.transforms.transforms import (
     DetectionRescale,
     DetectionPadToSize
@@ -55,34 +56,18 @@ def initialize_yolo_nas_with_dataset(
     )
 
     # -------- Data loaders --------
-    train_loader = dataloaders.get(
-        name="ftrs_train",
-        dataset_params = {
-            "data_dir": "dataset",
-            "train_images_dir": "train/images",
-            "train_labels_dir": "train/labels",
-            "classes": ['ball', 'goalkeeper', 'player', 'referee']
-        },
-        dataloader_params={
-            "batch_size": batch_size,
-            "num_workers": num_workers,
-            "shuffle": True
-        }
+    train_loader = DataLoader(
+        train_dataset,
+        batch_size=batch_size,
+        shuffle=True,
+        num_workers=num_workers
     )
 
-    val_loader = dataloaders.get(
-        name="ftrs_val",
-        dataset_params = {
-            "data_dir": "dataset",
-            "train_images_dir": "valid/images",
-            "train_labels_dir": "valid/labels",
-            "classes": ['ball', 'goalkeeper', 'player', 'referee']
-        },
-        dataloader_params={
-            "batch_size": batch_size,
-            "num_workers": batch_size,
-            "shuffle": True
-        }
+    val_loader = DataLoader(
+        val_dataset,
+        batch_size=batch_size,
+        shuffle=False,
+        num_workers=num_workers
     )
 
     # -------- Load YOLO-NAS --------
