@@ -23,3 +23,7 @@ The project will proceed as follows:
     - Passive feature tracking - detect information such as the direction players are looking in, whether they are on a run, or standing more or less still, or, using video input, a progressing run with 'history', player speed, ball speed etc.
  
 The final product will be due for delivery by TBA, and defended in a small presentation in December or mid-January, after which the module is closed for this academic year.
+
+### Use of GenAI
+
+For time constraints, Anthropic's Claude provided a starting point for the implementation of the "self-made" model. The exact code pasted from Claude is visible in ftrs.py at commit "Init ftrs.py and Python 3.12 env (again)" (https://github.com/JoshDe777/CompVis_FTRS/commit/7b3b2150dd6182f28fdc932c37d917468e3c9381). This code was inspected and adapted by the project participants in subsequent commits to adjust the model's capabilities and contents to our effect. 

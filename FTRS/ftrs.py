@@ -35,64 +35,18 @@ Key Parameters You Can Control:
 """
 
 # ============================================================================
-# PART 2: DATASET CONFIGURATION
-# ============================================================================
-
-def create_dataset_yaml(dataset_path, classes):
-    """
-    Create YAML configuration for your dataset
-    
-    Dataset structure should be:
-    dataset/
-    ├── train/
-    │   ├── images/
-    │   └── labels/
-    ├── val/
-    │   ├── images/
-    │   └── labels/
-    └── test/
-        ├── images/
-        └── labels/
-    """
-    config = {
-        'path': str(Path(dataset_path).absolute()),
-        'train': 'train/images',
-        'val': 'val/images',
-        'test': 'test/images',
-        'nc': len(classes),  # number of classes
-        'names': classes
-    }
-    
-    yaml_path = Path(dataset_path) / 'data.yaml'
-    with open(yaml_path, 'w') as f:
-        yaml.dump(config, f, sort_keys=False)
-    
-    return yaml_path
-
-# Example for football dataset
-football_classes = [
-    'player',
-    'ball',
-    'goalkeeper',
-    'referee',
-    'goal',
-    'corner_flag'
-]
-
-# ============================================================================
-# PART 3: MODEL TRAINING WITH CUSTOM PARAMETERS
+# PART 2: MODEL TRAINING WITH CUSTOM PARAMETERS
 # ============================================================================
 
 class FootballDetector:
-    def __init__(self, model_size='m', pretrained=True):
+    def __init__(self, model_size='n'):
         """
         Initialize YOLO model
         
         Args:
             model_size: 'n', 's', 'm', 'l', 'x' (nano to xlarge)
-            pretrained: Use COCO pretrained weights for transfer learning
         """
-        model_name = f'yolov8{model_size}.pt' if pretrained else f'yolov8{model_size}.yaml'
+        model_name = f'yolov8{model_size}.yaml'
         self.model = YOLO(model_name)
         
     def train(self, data_yaml, **kwargs):
@@ -119,39 +73,31 @@ class FootballDetector:
         
         # Default training parameters with good defaults
         default_params = {
+            # central params
             'data': data_yaml,
             'epochs': 100,
             'imgsz': 640,
             'batch': 16,
             'lr0': 0.01,
             'lrf': 0.01,
-            'momentum': 0.937,
-            'weight_decay': 0.0005,
-            'warmup_epochs': 3.0,
-            'warmup_momentum': 0.8,
-            'warmup_bias_lr': 0.1,
-            'box': 7.5,  # box loss gain
-            'cls': 0.5,  # cls loss gain
-            'dfl': 1.5,  # dfl loss gain
-            'mosaic': 1.0,
-            'mixup': 0.0,
-            'copy_paste': 0.0,
-            'degrees': 0.0,
-            'translate': 0.1,
-            'scale': 0.5,
-            'shear': 0.0,
-            'perspective': 0.0,
-            'flipud': 0.0,
-            'fliplr': 0.5,
-            'hsv_h': 0.015,
-            'hsv_s': 0.7,
-            'hsv_v': 0.4,
-            'device': 0,  # GPU device (0 for first GPU, 'cpu' for CPU)
-            'workers': 8,
+            'device': 0,        # GPU device (0 for first GPU, 'cpu' for CPU)
+            'workers': 8,       
+            # transforms
+            'mosaic': 0.0,      # fuse multiple images into one
+            'mixup': 0.0,       # blend training images
+            'degrees': 0.0,     # random rotations up to n degrees
+            'translate': 0.1,   # random image offsetting up to n % [0, 1] of the image
+            'scale': 0.5,       # random scaling up or down n % [0, 1]
+            'flipud': 0.0,      # horizontal flip
+            'fliplr': 0.5,      # vertical flip
+            'hsv_h': 0.015,     # hue augmentation
+            'hsv_s': 0.7,       # saturation augmentation
+            'hsv_v': 0.4,       # general brightening of images
+            # other params that seem important enough to not cut
             'project': 'runs/train',
-            'name': 'football_detector',
+            'name': 'football_tactical_recognition_software',
             'exist_ok': False,
-            'pretrained': True,
+            'pretrained': False,
             'optimizer': 'auto',  # 'SGD', 'Adam', 'AdamW', 'auto'
             'verbose': True,
             'seed': 0,
@@ -188,7 +134,7 @@ class FootballDetector:
         self.model.export(format=format)
 
 # ============================================================================
-# PART 4: INFERENCE WITH TRACKING (PERSISTENT LABELING)
+# PART 3: INFERENCE WITH TRACKING (PERSISTENT LABELING)
 # ============================================================================
 
 class FootballTracker:
@@ -199,7 +145,7 @@ class FootballTracker:
         Args:
             model_path: Path to trained model weights
             conf_threshold: Confidence threshold for detections
-            iou_threshold: IoU threshold for NMS
+            iou_threshold: IoU threshold for NMS - confidence threshold for label persistence between frames. if similarity >= IOU label is passed from one object to the next.
         """
         self.model = YOLO(model_path)
         self.conf = conf_threshold
@@ -293,17 +239,17 @@ class FootballTracker:
         )
 
 # ============================================================================
-# PART 5: EXAMPLE USAGE
+# PART 4: EXAMPLE USAGE
 # ============================================================================
 
 if __name__ == "__main__":
     
     # Step 1: Prepare dataset configuration
-    dataset_path = "./football_dataset"  # Your dataset location
-    data_yaml = create_dataset_yaml(dataset_path, football_classes)
+    dataset_path = "dataset"  # Your dataset location
+    data_yaml = "dataset/data.yaml"
     
     # Step 2: Initialize and train model
-    detector = FootballDetector(model_size='m', pretrained=True)
+    detector = FootballDetector(model_size='n')
     
     # Step 3: Train with custom parameters
     results = detector.train(
@@ -314,7 +260,7 @@ if __name__ == "__main__":
         lr0=0.01,
         patience=20,
         device=0,  # Use GPU 0
-        # Custom augmentation for football
+        # Custom augmentation for football -> (Josh here) sensible transforms for the most part tbh; Color modifs to account for different lighting, horizontal flip for players going both sides; general transforms and a bit of mosaic & mixup decent
         mosaic=1.0,
         mixup=0.1,
         degrees=5.0,  # Small rotation for camera angles
@@ -346,7 +292,7 @@ if __name__ == "__main__":
     detector.export(format='onnx')
 
 # ============================================================================
-# PART 6: SAVE/LOAD WEIGHTS & DEEP MODEL INSPECTION
+# PART 5: SAVE/LOAD WEIGHTS & DEEP MODEL INSPECTION
 # ============================================================================
 
 def save_model_weights(model, save_path):
