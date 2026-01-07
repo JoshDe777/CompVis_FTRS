@@ -80,7 +80,7 @@ class FootballDetector:
             'batch': 16,
             'lr0': 0.01,
             'lrf': 0.01,
-            'device': 'cpu',        # GPU device (0 for first GPU, 'cpu' for CPU)
+            'device': 0,        # GPU device (0 for first GPU, 'cpu' for CPU)
             'workers': 8,       
             # transforms
             'mosaic': 0.0,      # fuse multiple images into one
@@ -445,6 +445,7 @@ if __name__ == "__main__":
     val_results = detector.validate(data_yaml)
     
     # Step 5: Track objects in video
+    # path doubles slashes for no reason
     tracker = FootballTracker(
         model_path='runs/train/football_detector/weights/best.pt',
         conf_threshold=0.3,
