@@ -2,4 +2,4 @@ torch
 torchvision
 torchaudio
 super-gradients
-yaml
+pyyaml
