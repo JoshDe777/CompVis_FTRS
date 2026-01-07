@@ -3,20 +3,9 @@ from super_gradients.training import models
 from super_gradients.training.datasets.detection_datasets.yolo_format_detection import (
     YoloDarknetFormatDetectionDataset
 )
-from super_gradients.training.dataloaders.dataloaders import DetectionDataLoader
+from super_gradients.training import dataloaders
 from super_gradients.training.transforms.transforms import (
-    DetectionResize,
-    DetectionPadToSize
-)
-
-import yaml
-from super_gradients.training import models
-from super_gradients.training.datasets.detection_datasets.yolo_format_detection import (
-    YoloDarknetFormatDetectionDataset
-)
-from super_gradients.training.dataloaders.dataloaders import DetectionDataLoader
-from super_gradients.training.transforms.transforms import (
-    DetectionResize,
+    DetectionRescale,
     DetectionPadToSize
 )
 
@@ -35,7 +24,7 @@ def initialize_yolo_nas_with_dataset(
     with open(dataset_yaml_path, "r") as f:
         data_cfg = yaml.safe_load(f)
 
-    dataset_root = data_cfg["path"]
+    dataset_root = "dataset"
     train_images = data_cfg["train"]
     val_images = data_cfg["val"]
     class_names = data_cfg["names"]
@@ -43,8 +32,8 @@ def initialize_yolo_nas_with_dataset(
 
     # -------- Transforms --------
     transforms = [
-        DetectionResize(image_size),
-        DetectionPadToSize(image_size)
+        DetectionRescale(image_size),
+        DetectionPadToSize(image_size, 0)
     ]
 
     # -------- Train dataset --------
@@ -66,18 +55,34 @@ def initialize_yolo_nas_with_dataset(
     )
 
     # -------- Data loaders --------
-    train_loader = DetectionDataLoader(
-        dataset=train_dataset,
-        batch_size=batch_size,
-        shuffle=True,
-        num_workers=num_workers
+    train_loader = dataloaders.get(
+        name="ftrs_train",
+        dataset_params = {
+            "data_dir": "dataset",
+            "train_images_dir": "train/images",
+            "train_labels_dir": "train/labels",
+            "classes": ['ball', 'goalkeeper', 'player', 'referee']
+        },
+        dataloader_params={
+            "batch_size": batch_size,
+            "num_workers": num_workers,
+            "shuffle": True
+        }
     )
 
-    val_loader = DetectionDataLoader(
-        dataset=val_dataset,
-        batch_size=batch_size,
-        shuffle=False,
-        num_workers=num_workers
+    val_loader = dataloaders.get(
+        name="ftrs_val",
+        dataset_params = {
+            "data_dir": "dataset",
+            "train_images_dir": "valid/images",
+            "train_labels_dir": "valid/labels",
+            "classes": ['ball', 'goalkeeper', 'player', 'referee']
+        },
+        dataloader_params={
+            "batch_size": batch_size,
+            "num_workers": batch_size,
+            "shuffle": True
+        }
     )
 
     # -------- Load YOLO-NAS --------
