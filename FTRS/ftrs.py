@@ -1,7 +1,6 @@
 ﻿from ultralytics import YOLO
 import cv2
 import yaml
-from pathlib import Path
 import torch
 
 # ============================================================================
@@ -132,6 +131,7 @@ class FootballDetector:
     def export(self, format='onnx'):
         """Export model to different formats"""
         self.model.export(format=format)
+
 
 # ============================================================================
 # PART 3: INFERENCE WITH TRACKING (PERSISTENT LABELING)
@@ -427,6 +427,9 @@ def compare_architectures(model1_path, model2_path):
     print("\n\nMODEL 2:")
     inspect_model_architecture(model2, verbose=False)
 
+# toggle force or disable a model training or load existing weights
+retrain = False
+
 # Example usage for inspection
 if __name__ == "__main__":
     # Step 1: Prepare dataset configuration
@@ -436,18 +439,19 @@ if __name__ == "__main__":
     # Step 2: Initialize and train model
     detector = FootballDetector(model_size='n')
     
+    if retrain:
     # Step 3: Train with custom parameters
-    results = detector.train(
-        data_yaml=data_yaml
-    )
+        results = detector.train(
+            data_yaml=data_yaml
+        )
     
-    # Step 4: Validate model
-    val_results = detector.validate(data_yaml)
+        # Step 4: Validate model
+        val_results = detector.validate(data_yaml)
     
     # Step 5: Track objects in video
     # path doubles slashes for no reason
     tracker = FootballTracker(
-        model_path='runs/train/football_detector/weights/best.pt',
+        model_path='runs/train/football_tactical_recognition_software/weights/best.pt',
         conf_threshold=0.3,
         iou_threshold=0.5
     )
@@ -462,10 +466,10 @@ if __name__ == "__main__":
     detector.export(format='onnx')
 
     # After training, save the model
-    save_model_weights(detector.model, 'football_detector_final.pt')
+    save_model_weights(detector.model, 'football_tactical_recognition_software.pt')
     
     # Load model later
-    loaded_model = load_model_weights('football_detector_final.pt')
+    loaded_model = load_model_weights('football_tactical_recognition_software.pt')
     
     # Deep inspection of architecture
     pytorch_model = inspect_model_architecture(loaded_model, verbose=True)
@@ -485,7 +489,7 @@ if __name__ == "__main__":
     # extract_specific_layer(loaded_model, 'model.0')  # First conv layer
     
     # For tracker: same process
-    tracker_model = YOLO('runs/train/football_detector/weights/best.pt')
+    tracker_model = YOLO('runs/train/football_tactical_recognition_software/weights/best.pt')
     print("\n\nTRACKER MODEL INSPECTION:")
     inspect_model_architecture(tracker_model, verbose=False)
 

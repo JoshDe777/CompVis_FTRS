@@ -10,10 +10,10 @@ imgsz: 640
 save: true
 save_period: -1
 cache: false
-device: cpu
+device: '0'
 workers: 8
 project: runs/train
-name: football_tactical_recognition_software
+name: football_tactical_recognition_software2
 exist_ok: false
 pretrained: false
 optimizer: auto
@@ -103,4 +103,4 @@ auto_augment: randaugment
 erasing: 0.4
 cfg: null
 tracker: botsort.yaml
-save_dir: C:\repositories\uni\CompVis_FTRS\FTRS\runs\train\football_tactical_recognition_software
+save_dir: C:\repositories\uni\CompVis_FTRS\FTRS\runs\train\football_tactical_recognition_software2
