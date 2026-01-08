@@ -457,7 +457,7 @@ if __name__ == "__main__":
     )
     
     tracker.track_video(
-        video_path='test_match.mp4',
+        video_path='football.mp4',
         output_path='tracked_match.mp4',
         tracker='botsort.yaml'
     )

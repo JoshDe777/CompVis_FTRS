@@ -5,6 +5,7 @@ from super_gradients.training.datasets.detection_datasets.yolo_format_detection 
 )
 from super_gradients.training import dataloaders
 from torch.utils.data import DataLoader
+from super_gradients.training.utils.checkpoint_utils import load_checkpoint_to_model
 from super_gradients.training.transforms.transforms import (
     DetectionRescale,
     DetectionPadToSize
@@ -72,10 +73,17 @@ def initialize_yolo_nas_with_dataset(
 
     # -------- Load YOLO-NAS --------
     model = models.get(
-        model_name,
+        "yolo_nas_s",
         num_classes=num_classes,
-        pretrained_weights="coco"
+        pretrained_weights=None
     )
+
+    load_checkpoint_to_model(
+        model,
+        "yolo_nas_s_coco.pth",
+        strict=False
+    )
+
 
     return model, train_loader, val_loader, class_names
 
